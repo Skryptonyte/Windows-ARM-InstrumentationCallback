@@ -10,20 +10,20 @@
 
 extern "C" void instrumentationCallbackOuter(void);
 
-bool visited = false;
-
 extern "C" void instrumentationCallback(uint64_t PC) {
     char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
     PSYMBOL_INFO pSymbol = (PSYMBOL_INFO) buffer;
     DWORD64 displacement = 0;
-    char hexAddr[32];
+
+    /* instrumentationCallbackDisabled at offset 0x2ec of TEB */
+    uint8_t *instrumentationCallbackDisabled = ((uint8_t *) NtCurrentTeb() + 0x2ec);
 
     /* Avoid infinite recursion */
-    if (visited) {
+    if (*instrumentationCallbackDisabled) {
         return;
     }
 
-    visited = true;
+    *instrumentationCallbackDisabled = 1;
     
     pSymbol->MaxNameLen = MAX_SYM_NAME;
     pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
@@ -35,7 +35,7 @@ extern "C" void instrumentationCallback(uint64_t PC) {
         printf_s("Unknown system call returning @ %016x\n", PC);
     }
 
-    visited = false;
+    *instrumentationCallbackDisabled = 0;
 }
 
 int main()

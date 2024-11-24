@@ -11,7 +11,6 @@ after the kernel-mode to user-mode transition. Every other sample till this poin
 
 # TODO
 
-* Consider using TLS to make it more thread safe.
 * Some code cleanup.
 
 # References
